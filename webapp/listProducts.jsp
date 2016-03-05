@@ -31,12 +31,9 @@
             <div data-role="header" id="mainHeader" >
 
                 <img src="images/icon.png" class="ui-btn-left" />
-                <a href="#optionPanel" data-icon="gear" class="ui-btn-right">Options</a>
+             
                 <h3> Fish Cart</h3>
-            </div>
-            <div data-role="panel" id="optionPanel" data-theme="a" data-position="right" data-display="push"">
-               <a href="#optionPanel" data-icon="gear" class="ui-btn-right">Options</a>
-            </div>
+            </div>  
             <div data-role="content" >
 
                 <a  onclick="isFish = true;
@@ -53,6 +50,8 @@
 
             </div>
         </div>
+        
+       
         <div data-role="page" id="popupInfo">
             <div data-role="header" >
                 <h3 id="productName">Mathy sardine</h3> 
@@ -102,7 +101,6 @@
             <div data-role="header" id="mainHeader" >
 
                 <img src="images/icon.png" class="ui-btn-left" />
-                <a href="#optionPanel" data-icon="gear" class="ui-btn-right">Options</a>
                 <h3> Fish Cart</h3>
             </div>
             <div data-role="content" style="padding-top:0px">
@@ -136,7 +134,7 @@
 
 
     </div>
-
+       
 
 </body>
 </html>
