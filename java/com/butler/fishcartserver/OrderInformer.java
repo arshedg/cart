@@ -36,6 +36,11 @@ public class OrderInformer {
     public @ResponseBody Collection<OrderDetails> getOrdersByCustomer(){
         return orderDao.getPendingOrdersGroupedByCustomer();
     }
+    
+    @RequestMapping(value="/lastorder",method = RequestMethod.GET)
+    public Long getLastOrderId(){
+        return orderDao.getLastOrderId();
+    }
     @RequestMapping(value="/updatefeedback",method = RequestMethod.POST)
     public @ResponseBody String updateFeedback(@RequestParam(value="number") String number,
                                  @RequestParam(value="feedback") String feedback){

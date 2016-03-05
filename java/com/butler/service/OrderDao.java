@@ -51,7 +51,10 @@ public class OrderDao extends SimpleJdbcDaoSupport{
             }
         });
     }
-    
+    public Long getLastOrderId(){
+        String query="select MAX(id) from orders";
+        return this.getJdbcTemplate().queryForLong(query);
+    }
     public Collection<OrderDetails> getPendingOrdersGroupedByCustomer(){
        List<OrderDetails> orders = this.getPendingOrders();
        Map<String,OrderDetails> groupedOrder = new HashMap<>();
