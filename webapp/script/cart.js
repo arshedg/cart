@@ -13,27 +13,28 @@ var productCache;
 var isFish = true;
 var loadedPageID;
 var lastUpdatedTime = 0;
-var filter="all";
-$(document).on("pageshow", "#productPage", function () {
-    if (productCache == null) {
-        $.mobile.loading('show');
-    } else {
-        // loadProducts(productCache);
-    }
+var filter = "all";
 
-});
-$(document).on("pageshow", "#popupInfo", function () {
-    var product = getSelectedProduct(item);
-    if(product==null){
-        window.location = "../cart/listProducts.jsp"
-        return;
-    }
-    enableImmediate(product);
-});
-$(document).on("pagechange", function (e, data) {
-    loadedPageID = data.toPage[0].id;
-});
 function onBodyLoaded() {
+    $(document).on("pageshow", "#productPage", function () {
+        if (productCache == null) {
+            $.mobile.loading('show');
+        } else {
+            // loadProducts(productCache);
+        }
+
+    });
+    $(document).on("pageshow", "#popupInfo", function () {
+        var product = getSelectedProduct(item);
+        if (product == null) {
+            window.location = "../cart/listProducts.jsp"
+            return;
+        }
+        enableImmediate(product);
+    });
+    $(document).on("pagechange", function (e, data) {
+        loadedPageID = data.toPage[0].id;
+    });
     $("#popupInfo").change(function () {
         var slider_value = $("#quantity-step").val();
         $("#amountText").val(itemPrice * slider_value);
@@ -45,12 +46,13 @@ function onBodyLoaded() {
     });
     configureHeader();
     initProducts();
+    //runMigration();
     $("input[name='timing']").bind("change", function (event, ui) {
         computeDiscount(event, ui);
     });
     $("input[name='filter']").bind("change", function (event, ui) {
-        filter = event.target.id ;
-        if(productCache!=null){
+        filter = event.target.id;
+        if (productCache != null) {
             loadProducts(productCache);
         }
     });
@@ -67,6 +69,35 @@ function configureHeader() {
         $("#phone").val(getNumberFromBrowser());
     }
 
+}
+
+function runMigration(){
+    if(!isAndroid()) return;
+    var identity = getIdentity();
+    if(identity==null||identity==""){
+        var url = "api/generatePassword/"+getNumber();
+        $.ajax({
+        type: 'POST',
+        beforeSend: function (request) {
+            request.setRequestHeader("Cache-Control", "no-cache");
+        }, //Show spinner
+        complete: function () {
+        }, //Hide spinner
+        url: url,
+        success: function (responseText) {
+            var status = responseText.split(":")[0];
+            if(status=="SUCCESS"){  
+                var identity = responseText.split(":")[1];
+                saveIdentity(identity);
+            }
+        },
+    });
+    }else{
+        
+    }
+}
+function fetchMenuItems(){
+    
 }
 function isAndroid() {
     try {
@@ -124,8 +155,8 @@ function getNumberFromBrowser() {
         return "";
     }
 }
-function validateContext(){
-    if(item==null){
+function validateContext() {
+    if (item == null) {
         $.mobile.back();
     }
 }
@@ -146,7 +177,7 @@ function placeOrder() {
     }
     var url = "api/placeOrder?number=" + no + "&product=" + item + "&quantity=" + quantity + "&immediate=" + immediate;
     var appender = new Date().getTime();
-    url+="&appender="+appender;
+    url += "&appender=" + appender;
     $.ajax({
         type: 'POST',
         beforeSend: function (request) {
@@ -161,7 +192,14 @@ function placeOrder() {
             orderResponse("Not able to place the order.Please check the internet connection. You can contact us on 9605657736 if the issue persist", true);
         },
         success: function (response) {
-            orderResponse(response);
+            
+            if(response.split(":")[0]=="SUCCESS"){
+                var history = new OrderHistory();
+                history.addItem(response.split(":")[1]);
+                $("#successMessage").popup("open");
+                orderResponse("Your order is placed successfully");
+                history.getOrders();
+            }
         },
     });
 
@@ -202,6 +240,7 @@ function initProducts() {
         ,
         success: function (response) {
             loadProducts(response);
+            (new OrderHistory()).getOrders();
         },
     });
 
@@ -283,7 +322,7 @@ function orderResponse(response, isError) {
     $("#response").html(response);
     if (!isError) {
         //goes wrong with safar mobile sometimes
-      document.getElementById("orderButton").disabled = true;
+        document.getElementById("orderButton").disabled = true;
     }
 }
 function getCurrentTime() {
@@ -293,9 +332,9 @@ function getCurrentTime() {
 function loadProducts(products) {
     if (products == null)
         return;
-    if(isFish){
+    if (isFish) {
         $("#filterPanel").show(true);
-    }else{
+    } else {
         $("#filterPanel").hide(true);
     }
     $("#productList").empty();
@@ -306,29 +345,29 @@ function loadProducts(products) {
             $("#productList").append(createDom(products[i]));
         }
         else if (isFish && products[i].type === "FISH") {
-           handleFish(products[i]);
+            handleFish(products[i]);
         }
     }
 
     forceRefresh();
 }
-function handleFish(product){
-    var all = filter=="all";
-    if(all){
-         $("#productList").append(createDom(product));
-         return;
+function handleFish(product) {
+    var all = filter == "all";
+    if (all) {
+        $("#productList").append(createDom(product));
+        return;
     }
-    var regular = filter=="regular";
-    var premium = filter=="premium";
-    var type=fishCostType(product);
-    if(regular && type =="regular"){
-       $("#productList").append(createDom(product)); 
-    }else if(premium && type =="premium"){
-       $("#productList").append(createDom(product)); 
+    var regular = filter == "regular";
+    var premium = filter == "premium";
+    var type = fishCostType(product);
+    if (regular && type == "regular") {
+        $("#productList").append(createDom(product));
+    } else if (premium && type == "premium") {
+        $("#productList").append(createDom(product));
     }
 }
-function fishCostType(product){
-    return product.marketPrice>299?"premium":"regular";
+function fishCostType(product) {
+    return product.marketPrice > 299 ? "premium" : "regular";
 }
 function getSelectedProduct(name) {
     for (i = 0; i < productCache.length; i++) {
@@ -337,6 +376,7 @@ function getSelectedProduct(name) {
         }
     }
 }
+
 function getNumber() {
     if (!isAndroid()) {
         return getNumberFromBrowser();
@@ -354,4 +394,119 @@ function forceRefresh() {
         return;
     }
 }
+var OrderHistory = function(){
+    
+}
+OrderHistory.prototype.addItem = function(value){
+    var history = this.getHistory();
+    var currentTime = new Date().getTime();
+    if(history==null){
+        history={};
+        history["items"]=[];
+    }else{
+        var lastOrderTime = this.lastOrderTime();
+        var timeDiff = timeDiffInMins(currentTime,lastOrderTime);
+        if(timeDiff>90){
+            history["items"] = [];
+        }
+    }
+    history["items"].push(value);
+    history["time"] = currentTime;
+    this.setHistory(history)
+}
+OrderHistory.prototype.lastOrderTime = function(){
+    var history = this.getHistory();
+    if(history!=null){
+        return history["time"];
+    }
+    else{
+        return -1;
+    }
+}
+OrderHistory.prototype.getHistory = function(){
+    var history;
+    if(isAndroid()){
+        history = Android.readValue("history");
+    }else{
+        history = localStorage.getItem('history');        
+    }
+    if(history==null||history==""){
+        return null;
+    }
+    return JSON.parse(history);
+}
 
+OrderHistory.prototype.setHistory = function(history){
+    var object = JSON.stringify(history);
+    if(isAndroid()){
+       Android.saveKeyValue("history",object); 
+    }else{
+        localStorage.setItem("history",object);    
+    }
+}
+OrderHistory.prototype.getOrders = function(){
+    var history = this.getHistory();
+    if(history==null){
+        return null;
+    }
+    var items = history["items"].join(",");
+    var appender = new Date().getTime();
+    var url = "api/orders/details?items=" +items+ "&"+appender;
+    $.ajax({
+        url: url,
+        dataType: 'json',
+        error: function () {
+            //handle
+        }
+        ,
+        success: function (response) {
+            populateOrderMenu(response);
+        },
+    });
+
+    
+}
+function populateOrderMenu(response){
+    $("#mUserName").html(response.user.name);
+    var lastOrders = response.orders;
+    var grandTotal =0;
+    $("#mOrderMenu").html("");
+    $("#navpanelInner").html("");
+    $("#orderSubmenu").hide();
+    for(var i=0;i<lastOrders.length;i++){
+        var line = $("#mProductName").clone();
+        var product = getProduct(lastOrders[i].product);
+        if(product==null){
+            continue;
+        }
+        var genId = "mProductName"+lastOrders[i].orderId;
+        line[0].id=genId;
+        line.find("#mItem").text(product.displayName+" :")
+        var quantity = lastOrders[i].quantity;
+        var price = product.sellingPrice;
+        var total = quantity*price;
+        grandTotal+=total;
+        var dtString = ""+quantity+" * "+price+" = "+total;
+        line.find("#mDetails").text(dtString);
+        $("#mOrderMenu").append(line);
+    }
+   
+    if(grandTotal!=0){
+        $("#orderSubmenu").show();
+        $("#mTotal").text("Rs. "+grandTotal);
+    }
+     $("#navpanelInner").html($("#navpanel").html());
+    
+}
+function getProduct(id){
+     for (i = 0; i < productCache.length; i++) {
+         if(productCache[i].name==id){
+             return productCache[i];
+         }
+     }
+     return null;
+}
+function timeDiffInMins(t1,t2){
+    var diff = t1-t2;
+    return  Math.floor(diff/1000/60);
+}

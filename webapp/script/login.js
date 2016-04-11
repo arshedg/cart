@@ -30,7 +30,13 @@ function toggle(e){
    
 }
 function registerResponse(response){
-    if(response.responseText=="SUCCESS"){  
+    var responseText = response.responseText;
+    var status = responseText.split(":")[0];
+    if(status=="SUCCESS"){  
+        showMessage(status);
+        var identity = responseText.split(":")[1];
+        showMessage("identity from server:"+identity);
+        saveIdentity(identity);
         saveNumber();
         redirect('listProducts.jsp');;
     }else
@@ -80,6 +86,17 @@ function getNumberFromBrowser() {
         return "";
     }
 }
+function saveIdentity(identity){
+    if(isAndroid()){
+        Android.saveKeyValue("identity",identity);
+    }
+}
+function getIdentity(){
+    if(isAndroid()){
+        return Android.readValue("identity");
+    }
+}
+
 function isAndroid() {
     try {
         Android;

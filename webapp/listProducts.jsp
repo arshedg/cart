@@ -20,18 +20,59 @@
         <script src="script/login.js"></script>
         <script src="script/cart.js?<%=System.currentTimeMillis()%>"></script>
         <style>
+            #side-menu-button {
+                left: auto;
+                right: 0;
+            }
+            #side-menu {
+                position: fixed;
+                top: 50px;
+                right: 0;
+                left: auto;
+                bottom: 0;
+                width: 70%;
+                max-width:100px;
+                z-index: 10000;
+                background: #fff;
+                opacity: 0.95;
+            }
 
+            #filterPanel .ui-radio {
+                width: 90px;
+                text-align: center;
+            }
+
+            #filterPanel label {
+                text-align: center;
+            }
+            .ui-panel-inner {
+                padding:0px; /*make the buttons flush edge to edge*/
+            }
+            .ui-controlgroup {
+                margin:0; /*make the buttons flush to the top*/
+            }
+            #header {
+                height:54px;
+            }
+            #bars-button {
+                margin-top:0px;
+            }
         </style>
     </head>
     <body>
         <script>
             $("body").ready(onBodyLoaded);
+            $("body").ready(function () {
+                $("#side-menu-button").click(function () {
+                    // $("#side-menu").toggle();
+                });
+            });
         </script>
-        <div data-role="page" id="entryPage">
+        <div data-role="page" id="entryPage" >
             <div data-role="header" id="mainHeader" >
 
                 <img src="images/icon.png" class="ui-btn-left" />
-             
+                <a id="side-menu-button" data-icon="bars"  class="ui-btn-right" style="margin-top:0px;" href="#navpanel">Menu</a>
                 <h3> Fish Cart</h3>
             </div>  
             <div data-role="content" >
@@ -47,11 +88,30 @@
                         loadProducts(productCache);" data-transition='flip'  href="#productPage" data-role="button" data-inline="true" class="center-button">
                     <img src="images/meat.png" class="ui-btn-bottom" />
                 </a>
+            </div>
+            <div data-role="panel" id="navpanel" data-theme="b"
+                 data-display="overlay" data-position="right">
+                <div data-role="header" >
+                     <div style="text-align: center;">Menu</div>
+                </div>
+                <div data-role="content">Welcome,<span id="mUserName"> Arshed</span></div>
+                <div data-role="header" >
+                    <div style="text-align: center;">Orders</div>
+                </div>
+                <div data-role="content" id="orderSubmenu" style="display: none">
+                    <ul id="mOrderMenu"style="list-style-type:disc">
 
+                    </ul>
+                    <span >Grand total:</span><span id="mTotal"></span>
+                </div>
+            </div>
+            <div data-role="footer">
+                <div style="font-size:xx-small">Supported by Addpix Solutions</div>
             </div>
         </div>
-        
-       
+
+    
+
         <div data-role="page" id="popupInfo">
             <div data-role="header" >
                 <h3 id="productName">Mathy sardine</h3> 
@@ -95,13 +155,19 @@
                 <input id="orderButton" type="submit" value="PLACE ORDER" onclick="placeOrder()">
                 <div id="response"></div>
             </div>
-
+            <div data-role="popup" data-transition="flip" data-theme="d" id="successMessage" style="border-top: solid green 8px;background-color: white;width:260px;height:70px">
+                Your order is placed successfully. Thank you for shopping with us.
+                    <a href="#" data-rel="back" data-role="button" data-theme="b" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Close</a>
+            </div>
         </div>
+   
         <div data-role="page" class="type-home" id="productPage">
             <div data-role="header" id="mainHeader" >
 
                 <img src="images/icon.png" class="ui-btn-left" />
                 <h3> Fish Cart</h3>
+                <a id="side-menu-button" data-icon="bars"  class="ui-btn-right" style="margin-top:0px;" href="#navpanelInner">Menu</a>
+
             </div>
             <div data-role="content" style="padding-top:0px">
                 <fieldset id="filterPanel" data-role="controlgroup" data-type="horizontal" data-mini="true">
@@ -127,14 +193,32 @@
                             100% quality assurance. You can return the product if not happy with the quality.
                         </li>
                     </ul>
+                    
+                </div>
+            </div>
+        <div data-role="panel" id="navpanelInner" data-theme="b"
+                 data-display="overlay" data-position="right">
+                <div data-role="header" >
+                    Menu
+                </div>
+                <div data-role="content">Welcome,<span id="mUserName"></span></div>
+                <div data-role="header" >
+                    Orders
+                </div>
+                <div data-role="content" style="display:none;">
+                    <ul id="mOrderMenu"style="list-style-type:disc">
+
+                    </ul>
+                    <span >Grand total:</span><span id="mTotal"></span>
                 </div>
             </div>
 
         </div>
-
-
+            <div>
+            <li id="mProductName"><span id="mItem"></span><br/> <span id="mDetails" style=""></span></li> 
+        </div>
     </div>
-       
+
 
 </body>
 </html>
