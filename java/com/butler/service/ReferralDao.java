@@ -6,7 +6,7 @@
 package com.butler.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.simple.SimpleJdbcDaoSupport;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  * @author arsh
  */
 @Component
-public class ReferralDao extends SimpleJdbcDaoSupport {
+public class ReferralDao extends JdbcTemplate {
     
     @Autowired
     private UserDao userDao;
@@ -24,20 +24,20 @@ public class ReferralDao extends SimpleJdbcDaoSupport {
             return;
         }
         String query="insert into referral(user,referred_by) values(?,?)";
-        this.getSimpleJdbcTemplate().update(query, user,referral);
+        this.update(query, user,referral);
     }
     
     public String getActiveReferrer(String number){
         String query="select referred_by from referral where user=? and rewarded=0";
         try{
-        return this.getSimpleJdbcTemplate().queryForObject(query, String.class,number);
+        return queryForObject(query, String.class,number);
         }catch(Exception e){
             return "";
         }
     }
     private boolean isAlreadyOrdered(String number){
         String query="select count(*) from orders where number=?";
-        int ordersPlaced = this.getSimpleJdbcTemplate().queryForInt(query, number);
+        int ordersPlaced = this.queryForObject(query, Integer.class);
         return !(ordersPlaced==0);
     }
 }

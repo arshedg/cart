@@ -6,23 +6,50 @@
 package com.butler.service;
 
 
+import com.butler.data.User;
+import com.mysql.jdbc.StringUtils;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.simple.SimpleJdbcDaoSupport;
+
 
 /**
  *
  * @author arsh
  */
-public class UserDao extends SimpleJdbcDaoSupport {
+public class UserDao extends JdbcTemplate {
 
 
-    public int saveUser(String name, long number) {
-        return this.getSimpleJdbcTemplate().update("insert into user(name,number) values(?,?) ", name,number);
+    public String saveUser(String name, long number) {
+        String identity = generatePassword(number);
+        int changes =  this.update("insert into user(name,number,identity) values(?,?,?) ", name,number,generatePassword(number));
+        if(changes==1){//on success
+            return identity;
+        }
+        return null;
+    }
+    public String generatePassword(Long number){
+        return number.toString()+System.currentTimeMillis();
+    }
+   public User getUserDetails(Long number){
+        String sql="select name,number,address,credit,identity from user where number=?";
+        List<User> users = this.query(sql,new Object[]{number}, new RowMapper() {
+
+            @Override
+            public Object mapRow(ResultSet rs, int i) throws SQLException {
+                User user = new User();
+                user.setName(rs.getString("name"));
+                user.setNumber(rs.getString("number"));
+                user.setAddress(rs.getString("address"));
+                user.setCredit(rs.getFloat("credit"));
+                return user;
+            }
+        });
+        return getBetterUserObject(users);
     }
     public void addCredit(String number,float amount){
         String name = getName(number);
@@ -30,18 +57,18 @@ public class UserDao extends SimpleJdbcDaoSupport {
             return;
         }
         float credits = getCredits(number)+amount;
-        this.getSimpleJdbcTemplate().update("update user set credit=? where number=?",credits,number);
+        this.update("update user set credit=? where number=?",credits,number);
         
     }
     public float getCredits(String number){
         String query = "select credit from user where number=?";
-        long price = this.getSimpleJdbcTemplate().queryForLong(query, number);
-        return price;
+        return this.queryForObject(query, new Object[]{number}, Float.class);
+
     }
     public String getName(String number){
         
         try{
-            List<String> names = this.getJdbcTemplate().query("select name from user where number=?",new String[]{number}, new RowMapper() {
+            List<String> names = this.query("select name from user where number=?",new String[]{number}, new RowMapper() {
 
             @Override
             public Object mapRow(ResultSet rs, int i) throws SQLException {
@@ -57,17 +84,28 @@ public class UserDao extends SimpleJdbcDaoSupport {
     private static final String UNKNOWN = "UNKNOWN";
     public String getAddress(String number){
         try{
-        return this.getSimpleJdbcTemplate().queryForObject("select address from user where number=?", String.class, number);
+        return this.queryForObject("select address from user where number=?", String.class, number);
         }catch(Throwable e){
             return "Address not found";
         }
     }
     public void updateUser(String name,String address,String number){
-        this.getSimpleJdbcTemplate().update("update user set name=?,address=? where number=?", name,address,number);
+        this.update("update user set name=?,address=? where number=?", name,address,number);
+    }
+    
+    public String updatePassword(String number){
+        String password = this.generatePassword(Long.valueOf(number));
+        int changes = this.update("update user set identity=? where number=?", password,number);
+        String response = "SUCCESS:"+password;
+        return changes>0?response:"failed to update";
+    }
+    public boolean hasPassword(String number){
+        Integer passwordCount = this.queryForObject("select count(*) from user where identity is not null and number=?", new Object[]{number},Integer.class);
+        return passwordCount != 0;
     }
     public boolean doesNumberExist(long number){
         try{
-         this.getSimpleJdbcTemplate().queryForLong("select id from user where number=?", number);
+         this.queryForObject("select id from user where number=?", new Object[]{number},Integer.class);
         }catch(EmptyResultDataAccessException exception){
             return false;
         }
@@ -80,4 +118,14 @@ public class UserDao extends SimpleJdbcDaoSupport {
         }
         return true;
     }
+        private User getBetterUserObject(List<User> users) {       
+        for(User user:users){
+            if(!StringUtils.isEmptyOrWhitespaceOnly(user.getAddress())){
+                return user;
+            }
+        }
+        return users.get(0);
+    }
+
+ 
 }

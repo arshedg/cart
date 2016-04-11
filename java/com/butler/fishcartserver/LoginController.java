@@ -14,6 +14,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,11 +49,11 @@ public class LoginController {
         }catch(Exception ex){
             return "Numbered doesn't looks correct, please try again";
         }        
-        int response = userDao.saveUser(name, number);
-        if(response==1)
+        String response = userDao.saveUser(name, number);
+        if(response!=null)
         {
             addReferre(number.toString(), referred);
-            return "SUCCESS";
+            return "SUCCESS:"+response;
         }
         return "something went wrong. Please call us on 7204368605";
         
@@ -62,6 +63,16 @@ public class LoginController {
                                 @RequestParam(value="number") String number) throws IOException, ServletException{
         userDao.updateUser(name, address, number);
         return "update successfull.Refresh the page to see changes";
+    }
+    @RequestMapping("/generatePassword/{number}")
+    public String generatePassword(@PathVariable Long number){
+        boolean hasPassword = userDao.hasPassword(number.toString());
+        if(hasPassword){
+            //migration mismatch - need to inform the user
+            return "password exist";
+        }
+        return userDao.updatePassword(number.toString());
+        
     }
     private void addReferre(String no,String referred){
         if(referred==null||"".equals(referred.trim())){

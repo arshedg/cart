@@ -6,18 +6,18 @@
 package com.butler.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.simple.SimpleJdbcDaoSupport;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  *
  * @author arsh
  */
-public class UservisitDao extends SimpleJdbcDaoSupport{
+public class UservisitDao extends JdbcTemplate{
     @Autowired
     UserDao userDao;
     public void saveVisit(String number){
         String name = userDao.getName(number);
         String query="insert into uservisit(number,name) values(?,?) ";
-        this.getSimpleJdbcTemplate().update(query,number,name);
+        this.update(query,number,name);
     }
 }

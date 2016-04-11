@@ -12,19 +12,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.simple.SimpleJdbcDaoSupport;
+
 
 /**
  *
  * @author arsh
  */
-public class ProductDao extends SimpleJdbcDaoSupport{
+public class ProductDao extends JdbcTemplate{
     
     public List<Product> getAllProducts(){
         String sql = "select name,display_name,market_price,selling_price,size,type,booking_only from product where visible=1 order by display_position,booking_only";
-        return this.getJdbcTemplate().query(sql, new RowMapper() {
+        return this.query(sql, new RowMapper() {
 
             @Override
             public Object mapRow(ResultSet rs, int i) throws SQLException {
@@ -42,7 +43,7 @@ public class ProductDao extends SimpleJdbcDaoSupport{
     }
     public List<Product> getCompeteProducts(){
         String sql = "select name,display_name,display_position,market_price,selling_price,size,type,visible,booking_only from product  order by display_position";
-        return this.getJdbcTemplate().query(sql, new RowMapper() {
+        return this.query(sql, new RowMapper() {
 
             @Override
             public Object mapRow(ResultSet rs, int i) throws SQLException {
@@ -62,7 +63,7 @@ public class ProductDao extends SimpleJdbcDaoSupport{
     }
     public InputStream getImage(String product){
         String sql = "select pic from product where name='"+product+"'";
-        return (InputStream) this.getJdbcTemplate().query(sql,  new ResultSetExtractor() {
+        return (InputStream) this.query(sql,  new ResultSetExtractor() {
             public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
                 rs.next();
                 Blob imageBlob = rs.getBlob("pic");
@@ -74,13 +75,13 @@ public class ProductDao extends SimpleJdbcDaoSupport{
     }
     public int updateProduct(Product product){
         String sql="update product set name=?,display_name=?,selling_price=?,market_price=?,size=?,type=?,visible=?,booking_only=?,display_position=? where name=?";
-        return this.getSimpleJdbcTemplate().update(sql, product.getName(),product.getDisplayName(),
+        return this.update(sql, product.getName(),product.getDisplayName(),
                 product.getSellingPrice(),product.getMarketPrice(),product.getSizeSpecification(),product.getType(),product.isVisible(),product.isBookingOnly(),product.getDisplayPosition(),product.getName());
     }
     public void insertProduct(Product p){
         String sql="insert into product(name,display_name,selling_price,market_price,size,type,visible) values "
                 + "(?,?,?,?,?,?,?)";
-        this.getSimpleJdbcTemplate().update(sql, p.getName(),p.getDisplayName(),p.getSellingPrice(),p.getMarketPrice(),
+        this.update(sql, p.getName(),p.getDisplayName(),p.getSellingPrice(),p.getMarketPrice(),
                     p.getSizeSpecification(),p.getType(),p.isVisible());
     }
 }

@@ -5,16 +5,17 @@
  */
 package com.butler.service;
 
-import org.springframework.jdbc.core.simple.SimpleJdbcDaoSupport;
+import org.springframework.jdbc.core.JdbcTemplate;
+
 
 
 /**
  *
  * @author arsh
  */
-public class RevisionDao extends SimpleJdbcDaoSupport{
+public class RevisionDao extends JdbcTemplate{
     
-    public int getAppVersion(){
-        return this.getJdbcTemplate().queryForInt("select version from revision");
+    public Integer getAppVersion(){
+        return this.queryForObject("select version from revision",Integer.class);
     }
 }
