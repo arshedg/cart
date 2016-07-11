@@ -34,10 +34,7 @@ public class OrderDao extends JdbcTemplate {
 
     @Autowired
     UserDao userDao;
-    public void placeOrder2(String number, String order, float quantity, boolean isImmediate) {
-        String status = "TODO";
-        this.update("insert into orders(number,product,quantity,status,immediate) values(?,?,?,?,?)", number, order, quantity, status, isImmediate);
-    }
+   
     public int placeOrder(String number, String order, float quantity, boolean isImmediate){
         KeyHolder holder = new GeneratedKeyHolder();
         String sql = "insert into orders(number,product,quantity,status,immediate) values(?,?,?,?,?)";

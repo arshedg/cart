@@ -11,6 +11,8 @@ var itemPrice;
 var item;
 var productCache;
 var isFish = true;
+var isMeat=false;
+var isCook = false;
 var loadedPageID;
 var lastUpdatedTime = 0;
 var filter = "all";
@@ -31,6 +33,7 @@ function onBodyLoaded() {
             return;
         }
         enableImmediate(product);
+        setSliderAndAmount();
     });
     $(document).on("pagechange", function (e, data) {
         loadedPageID = data.toPage[0].id;
@@ -126,8 +129,14 @@ function createDom(product) {
 
 }
 function getPriceDom(mPrice, sPrice) {
-    var priceDom = '<span class="offer-price">Rs.' + sPrice + '</span>';
-    if (mPrice !== sPrice) {
+    var spec = new DefaultStep();
+    if(isCook){
+        spec = new CookStep();
+    }
+    var sellingPrice = spec.initialStep*sPrice;
+    var marketPrice = spec.initialStep*mPrice;
+    var priceDom = '<span class="offer-price">Rs.' + sellingPrice + '</span>';
+    if (marketPrice !== sellingPrice) {
         priceDom = '<span class="actual-price">Rs.' + mPrice + '</span>&nbsp;' + priceDom;
     }
     return priceDom;
@@ -199,6 +208,8 @@ function placeOrder() {
                 $("#successMessage").popup("open");
                 orderResponse("Your order is placed successfully");
                 history.getOrders();
+            }else{
+                 orderResponse(response,true);
             }
         },
     });
@@ -273,6 +284,20 @@ function enableImmediate(product) {
         $("#dBox").hide(true);
     }
 }
+function setSliderAndAmount(){
+     var sValue = new DefaultStep();
+    if(isCook){
+         sValue = new CookStep();
+    }
+    var slider = $("#quantity-step");
+    slider.attr("max",sValue.maxStep);
+    slider.attr("min",sValue.minStep);
+    slider.attr("step",sValue.stepSize);
+    slider.val(sValue.initialStep).slider("refresh");
+     $("#productPrice").val(itemPrice*sValue.initialStep);
+     $("#unitDescription").html(sValue.unitDescription);
+    $("#amountText").val(itemPrice*sValue.initialStep);
+}
 function computeDiscount(e, u) {
     var needDiscount = e.target.id == "later";
     if (needDiscount) {
@@ -297,7 +322,8 @@ function setPrice(price, itemName) {
     var product = getSelectedProduct(itemName);
     // enableImmediate(product);
     $("#productName").text(product.displayName);
-    $("#productPrice").val(product.sellingPrice);
+
+    $("#innerImage").attr("src","api/product/image/large?name="+itemName);
     $('#productPrice').textinput({theme: "c"});
 }
 function onReady(callback) {
@@ -329,6 +355,15 @@ function getCurrentTime() {
     //time in seconds;
     return Math.round(Date.now() / 1000);
 }
+function setType(type){
+    if(type=="FISH"){
+        isFish=true;isMeat=false;isCook=false;
+    }else if(type=="MEAT"){
+        isFish=false;isMeat=true;isCook=false;
+    }else if(type=="COOK"){
+        isFish=false;isMeat=false;isCook=true;
+    }
+}
 function loadProducts(products) {
     if (products == null)
         return;
@@ -341,7 +376,9 @@ function loadProducts(products) {
     var i = 0;
     productCache = products;
     for (i = 0; i < products.length; i++) {
-        if (!isFish && products[i].type === "MEAT") {
+        if (isMeat && products[i].type === "MEAT") {
+            $("#productList").append(createDom(products[i]));
+        }else if(isCook &&  products[i].type === "COOK"){
             $("#productList").append(createDom(products[i]));
         }
         else if (isFish && products[i].type === "FISH") {
@@ -393,6 +430,22 @@ function forceRefresh() {
     } catch (error) {
         return;
     }
+}
+var CookStep = function(){
+     this.initialStep=12;
+     this.minStep=12;
+     this.maxStep=48;
+    this.stepSize=6;
+    this.unitDescription="Price per Dozen(12 pieces)";
+
+}
+var DefaultStep = function(){
+    this.initialStep=1;
+    this.minStep=.5;
+    this.maxStep=5;
+    this.stepSize=.5;
+    this.unitDescription = "Price per KG:";
+
 }
 var OrderHistory = function(){
     
@@ -468,6 +521,7 @@ OrderHistory.prototype.getOrders = function(){
 }
 function populateOrderMenu(response){
     $("#mUserName").html(response.user.name);
+    $("#balance").html(response.user.credit);
     var lastOrders = response.orders;
     var grandTotal =0;
     $("#mOrderMenu").html("");
@@ -495,7 +549,9 @@ function populateOrderMenu(response){
         $("#orderSubmenu").show();
         $("#mTotal").text("Rs. "+grandTotal);
     }
+     $("#navpanelInner").html("");
      $("#navpanelInner").html($("#navpanel").html());
+     
     
 }
 function getProduct(id){

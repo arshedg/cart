@@ -34,13 +34,13 @@ public class OrderController {
     {
         
         try{
-            
+            validateNumber(number);
             initUser(number);     
             long value = orderDao.placeOrder(number, productID, quantity,isImmediate);
             alertDelivery(number, productID, quantity);
             return "SUCCESS:"+value;
         }catch(NumberFormatException exception){
-            return "<span style='color:red'>Your phone number doesn't look correct.For support contact us on 9605657736</span>";
+            return "<span style='color:red'>Your phone number doesn't looks correct.For support contact us on 9605657736</span>";
         }
         catch(Throwable e){
             alertError(number, productID, quantity, e);
@@ -70,5 +70,12 @@ public class OrderController {
        }
        userDao.saveUser("Auto generated", Long.valueOf(number));
        return true;
+    }
+
+    private void validateNumber(String number) {
+        Long value = Long.valueOf(number.trim());
+        if(value<5000000000l){
+            throw new NumberFormatException();
+        }
     }
 }

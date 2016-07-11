@@ -19,6 +19,23 @@
         <script src="//code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
         <script src="script/login.js"></script>
         <script src="script/cart.js?<%=System.currentTimeMillis()%>"></script>
+        <script>
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+                a = s.createElement(o),
+                        m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+            ga('create', 'UA-73360757-1', 'auto');
+            ga('send', 'pageview');
+
+        </script>
         <style>
             #side-menu-button {
                 left: auto;
@@ -51,6 +68,10 @@
             .ui-controlgroup {
                 margin:0; /*make the buttons flush to the top*/
             }
+            .side-menu-item {
+               margin:5px;
+         
+            }
             #header {
                 height:54px;
             }
@@ -76,60 +97,77 @@
                 <h3> Fish Cart</h3>
             </div>  
             <div data-role="content" >
-
-                <a  onclick="isFish = true;
+<a  onclick="setType('FISH');
+                        $('#booking').show(true);
+                        loadProducts(productCache);" data-transition='flip' href="pricerise.html" data-role="button" data-inline="true" class="center-button ">
+                    <img src="images/refer.png" class="ui-btn-bottom" />
+                </a>
+                 <br/><br/><br/>
+                <a  onclick="setType('FISH');
                         $('#booking').show(true);
                         loadProducts(productCache);" data-transition='flip' href="#productPage" data-role="button" data-inline="true" class="center-button ">
                     <img src="images/fish.png" class="ui-btn-bottom" />
                 </a>
                 <br/><br/><br/>
-                <a onclick="isFish = false;
+                <a onclick="setType('MEAT');
                         $('#booking').hide(true);
                         loadProducts(productCache);" data-transition='flip'  href="#productPage" data-role="button" data-inline="true" class="center-button">
                     <img src="images/meat.png" class="ui-btn-bottom" />
+                </a>
+                <br/><br/><br/>
+                <a onclick="setType('COOK');
+                        $('#booking').hide(true);
+                        loadProducts(productCache);" data-transition='flip'  href="#productPage" data-role="button" data-inline="true" class="center-button">
+                    <img src="images/cook.png" class="ui-btn-bottom" />
                 </a>
             </div>
             <div data-role="panel" id="navpanel" data-theme="b"
                  data-display="overlay" data-position="right">
                 <div data-role="header" >
-                     <div style="text-align: center;">Menu</div>
+                    <div style="text-align: center;">Menu</div>
                 </div>
-                <div data-role="content">Welcome,<span id="mUserName"> Arshed</span></div>
+                <div data-role="content" class="side-menu-item">Welcome,<span id="mUserName"> </span></div>
                 <div data-role="header" >
                     <div style="text-align: center;">Orders</div>
                 </div>
-                <div data-role="content" id="orderSubmenu" style="display: none">
+                <div data-role="content" id="orderSubmenu" class="side-menu-item" style="display: none">
                     <ul id="mOrderMenu"style="list-style-type:disc">
 
                     </ul>
                     <span >Grand total:</span><span id="mTotal"></span>
                 </div>
+                <div data-role="header" >
+                    <div style="text-align: center;">Credit Balance</div>
+                </div>
+                <div data-role="content" class="side-menu-item">Rs.<span id="balance"> 0</span></div>
             </div>
             <div data-role="footer">
                 <div style="font-size:xx-small">Supported by Addpix Solutions</div>
             </div>
         </div>
 
-    
+
 
         <div data-role="page" id="popupInfo">
             <div data-role="header" >
-                <h3 id="productName">Mathy sardine</h3> 
+                <h3 style="margin-left:0px;" id="productName">Mathy sardine</h3> 
             </div>
 
             <div data-role="content">
+                <img style="overflow:hidden;max-width:100%;" id="innerImage" src=""/>
+                
                 <div id='userinfo'>
                     <label for='phone'>Contact number:</label>
                     <input type='number' id='phone'/>
                 </div>
                 <div data-role="fieldcontain">
-                    <label for="productPrice">Price per KG:</label>
+                    <label id="unitDescription" for="productPrice">Price per KG:</label>
                     <input type="text" id="productPrice" id="name" value="100" readonly="true" />
                 </div> 
 
 
 
-                <label for="quantity-step"> Please enter the quantity in Kg:</label>
+                <label for="quantity-step"> Select the quantity:</label>
                 <input type="range" name="quantity" id="quantity-step" value="1" min=".5" max="5" step=".5"  data-highlight="true" />
 
                 <div id="booking">
@@ -157,10 +195,10 @@
             </div>
             <div data-role="popup" data-transition="flip" data-theme="d" id="successMessage" style="border-top: solid green 8px;background-color: white;width:260px;height:70px">
                 Your order is placed successfully. Thank you for shopping with us.
-                    <a href="#" data-rel="back" data-role="button" data-theme="b" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Close</a>
+                <a href="#" data-rel="back" data-role="button" data-theme="b" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Close</a>
             </div>
         </div>
-   
+
         <div data-role="page" class="type-home" id="productPage">
             <div data-role="header" id="mainHeader" >
 
@@ -193,10 +231,10 @@
                             100% quality assurance. You can return the product if not happy with the quality.
                         </li>
                     </ul>
-                    
+
                 </div>
             </div>
-        <div data-role="panel" id="navpanelInner" data-theme="b"
+            <div data-role="panel" id="navpanelInner" data-theme="b"
                  data-display="overlay" data-position="right">
                 <div data-role="header" >
                     Menu
@@ -214,7 +252,7 @@
             </div>
 
         </div>
-            <div>
+        <div>
             <li id="mProductName"><span id="mItem"></span><br/> <span id="mDetails" style=""></span></li> 
         </div>
     </div>

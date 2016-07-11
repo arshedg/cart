@@ -62,11 +62,15 @@ public class ProductDao extends JdbcTemplate{
         });
     }
     public InputStream getImage(String product){
-        String sql = "select pic from product where name='"+product+"'";
+        return getImage(product, "pic");
+    
+    }
+    private InputStream getImage(String product,String model){
+        String sql = "select "+model+" from product where name='"+product+"'";
         return (InputStream) this.query(sql,  new ResultSetExtractor() {
             public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
                 rs.next();
-                Blob imageBlob = rs.getBlob("pic");
+                Blob imageBlob = rs.getBlob(model);
                 InputStream binaryStream = imageBlob.getBinaryStream(1, imageBlob.length());
                 return binaryStream;
             }
@@ -83,5 +87,9 @@ public class ProductDao extends JdbcTemplate{
                 + "(?,?,?,?,?,?,?)";
         this.update(sql, p.getName(),p.getDisplayName(),p.getSellingPrice(),p.getMarketPrice(),
                     p.getSizeSpecification(),p.getType(),p.isVisible());
+    }
+
+    public InputStream getLargeImage(String product) {
+        return getImage(product, "pic_large");
     }
 }

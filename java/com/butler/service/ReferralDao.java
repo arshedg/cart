@@ -37,7 +37,7 @@ public class ReferralDao extends JdbcTemplate {
     }
     private boolean isAlreadyOrdered(String number){
         String query="select count(*) from orders where number=?";
-        int ordersPlaced = this.queryForObject(query, Integer.class);
+        int ordersPlaced = this.queryForObject(query, new Object[]{number},Integer.class);
         return !(ordersPlaced==0);
     }
 }
