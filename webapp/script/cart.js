@@ -11,8 +11,9 @@ var itemPrice;
 var item;
 var productCache;
 var isFish = true;
-var isMeat=false;
+var isMeat = false;
 var isCook = false;
+var isFood = false;
 var loadedPageID;
 var lastUpdatedTime = 0;
 var filter = "all";
@@ -74,33 +75,34 @@ function configureHeader() {
 
 }
 
-function runMigration(){
-    if(!isAndroid()) return;
+function runMigration() {
+    if (!isAndroid())
+        return;
     var identity = getIdentity();
-    if(identity==null||identity==""){
-        var url = "api/generatePassword/"+getNumber();
+    if (identity == null || identity == "") {
+        var url = "api/generatePassword/" + getNumber();
         $.ajax({
-        type: 'POST',
-        beforeSend: function (request) {
-            request.setRequestHeader("Cache-Control", "no-cache");
-        }, //Show spinner
-        complete: function () {
-        }, //Hide spinner
-        url: url,
-        success: function (responseText) {
-            var status = responseText.split(":")[0];
-            if(status=="SUCCESS"){  
-                var identity = responseText.split(":")[1];
-                saveIdentity(identity);
-            }
-        },
-    });
-    }else{
-        
+            type: 'POST',
+            beforeSend: function (request) {
+                request.setRequestHeader("Cache-Control", "no-cache");
+            }, //Show spinner
+            complete: function () {
+            }, //Hide spinner
+            url: url,
+            success: function (responseText) {
+                var status = responseText.split(":")[0];
+                if (status == "SUCCESS") {
+                    var identity = responseText.split(":")[1];
+                    saveIdentity(identity);
+                }
+            },
+        });
+    } else {
+
     }
 }
-function fetchMenuItems(){
-    
+function fetchMenuItems() {
+
 }
 function isAndroid() {
     try {
@@ -130,11 +132,13 @@ function createDom(product) {
 }
 function getPriceDom(mPrice, sPrice) {
     var spec = new DefaultStep();
-    if(isCook){
+    if (isCook) {
         spec = new CookStep();
+    } else if (isFood) {
+        spec = new FoodStep();
     }
-    var sellingPrice = spec.initialStep*sPrice;
-    var marketPrice = spec.initialStep*mPrice;
+    var sellingPrice = spec.initialStep * sPrice;
+    var marketPrice = spec.initialStep * mPrice;
     var priceDom = '<span class="offer-price">Rs.' + sellingPrice + '</span>';
     if (marketPrice !== sellingPrice) {
         priceDom = '<span class="actual-price">Rs.' + mPrice + '</span>&nbsp;' + priceDom;
@@ -170,6 +174,7 @@ function validateContext() {
     }
 }
 function placeOrder() {
+  
     validateContext();
     if (!validateNumber())
         return;
@@ -201,15 +206,17 @@ function placeOrder() {
             orderResponse("Not able to place the order.Please check the internet connection. You can contact us on 9605657736 if the issue persist", true);
         },
         success: function (response) {
-            
-            if(response.split(":")[0]=="SUCCESS"){
+
+            if (response.split(":")[0] == "SUCCESS") {
                 var history = new OrderHistory();
                 history.addItem(response.split(":")[1]);
                 $("#successMessage").popup("open");
                 orderResponse("Your order is placed successfully");
                 history.getOrders();
-            }else{
-                 orderResponse(response,true);
+                gpsHanler = new GPS();
+                gpsHanler.saveLocation();
+            } else {
+                orderResponse(response, true);
             }
         },
     });
@@ -284,19 +291,22 @@ function enableImmediate(product) {
         $("#dBox").hide(true);
     }
 }
-function setSliderAndAmount(){
-     var sValue = new DefaultStep();
-    if(isCook){
-         sValue = new CookStep();
+function setSliderAndAmount() {
+    var sValue = new DefaultStep();
+    if (isCook) {
+        sValue = new CookStep();
+    }
+    if (isFood) {
+        sValue = new FoodStep();
     }
     var slider = $("#quantity-step");
-    slider.attr("max",sValue.maxStep);
-    slider.attr("min",sValue.minStep);
-    slider.attr("step",sValue.stepSize);
+    slider.attr("max", sValue.maxStep);
+    slider.attr("min", sValue.minStep);
+    slider.attr("step", sValue.stepSize);
     slider.val(sValue.initialStep).slider("refresh");
-     $("#productPrice").val(itemPrice*sValue.initialStep);
-     $("#unitDescription").html(sValue.unitDescription);
-    $("#amountText").val(itemPrice*sValue.initialStep);
+    $("#productPrice").val(itemPrice * sValue.initialStep);
+    $("#unitDescription").html(sValue.unitDescription);
+    $("#amountText").val(itemPrice * sValue.initialStep);
 }
 function computeDiscount(e, u) {
     var needDiscount = e.target.id == "later";
@@ -323,7 +333,7 @@ function setPrice(price, itemName) {
     // enableImmediate(product);
     $("#productName").text(product.displayName);
 
-    $("#innerImage").attr("src","api/product/image/large?name="+itemName);
+    $("#innerImage").attr("src", "api/product/image/large?name=" + itemName);
     $('#productPrice').textinput({theme: "c"});
 }
 function onReady(callback) {
@@ -355,13 +365,27 @@ function getCurrentTime() {
     //time in seconds;
     return Math.round(Date.now() / 1000);
 }
-function setType(type){
-    if(type=="FISH"){
-        isFish=true;isMeat=false;isCook=false;
-    }else if(type=="MEAT"){
-        isFish=false;isMeat=true;isCook=false;
-    }else if(type=="COOK"){
-        isFish=false;isMeat=false;isCook=true;
+function setType(type) {
+    if (type == "FISH") {
+        isFish = true;
+        isMeat = false;
+        isCook = false;
+        isFood = false;
+    } else if (type == "MEAT") {
+        isFish = false;
+        isMeat = true;
+        isCook = false;
+        isFood = false;
+    } else if (type == "COOK") {
+        isFish = false;
+        isMeat = false;
+        isCook = true;
+        isFood = false;
+    } else if (type == "FOOD") {
+        isFish = false;
+        isMeat = false;
+        isCook = false;
+        isFood = true;
     }
 }
 function loadProducts(products) {
@@ -378,7 +402,10 @@ function loadProducts(products) {
     for (i = 0; i < products.length; i++) {
         if (isMeat && products[i].type === "MEAT") {
             $("#productList").append(createDom(products[i]));
-        }else if(isCook &&  products[i].type === "COOK"){
+        } else if (isCook && products[i].type === "COOK") {
+            $("#productList").append(createDom(products[i]));
+        }
+        else if (isFood && products[i].type === "FOOD") {
             $("#productList").append(createDom(products[i]));
         }
         else if (isFish && products[i].type === "FISH") {
@@ -431,35 +458,43 @@ function forceRefresh() {
         return;
     }
 }
-var CookStep = function(){
-     this.initialStep=12;
-     this.minStep=12;
-     this.maxStep=48;
-    this.stepSize=6;
-    this.unitDescription="Price per Dozen(12 pieces)";
+var CookStep = function () {
+    this.initialStep = 12;
+    this.minStep = 12;
+    this.maxStep = 48;
+    this.stepSize = 6;
+    this.unitDescription = "Price per Dozen(12 pieces)";
 
 }
-var DefaultStep = function(){
-    this.initialStep=1;
-    this.minStep=.5;
-    this.maxStep=5;
-    this.stepSize=.5;
+var FoodStep = function () {
+    this.initialStep = 1;
+    this.minStep = 1;
+    this.maxStep = 10;
+    this.stepSize = 1;
+    this.unitDescription = "Price per unit";
+
+}
+var DefaultStep = function () {
+    this.initialStep = 1;
+    this.minStep = .5;
+    this.maxStep = 5;
+    this.stepSize = .5;
     this.unitDescription = "Price per KG:";
 
 }
-var OrderHistory = function(){
-    
+var OrderHistory = function () {
+
 }
-OrderHistory.prototype.addItem = function(value){
+OrderHistory.prototype.addItem = function (value) {
     var history = this.getHistory();
     var currentTime = new Date().getTime();
-    if(history==null){
-        history={};
-        history["items"]=[];
-    }else{
+    if (history == null) {
+        history = {};
+        history["items"] = [];
+    } else {
         var lastOrderTime = this.lastOrderTime();
-        var timeDiff = timeDiffInMins(currentTime,lastOrderTime);
-        if(timeDiff>90){
+        var timeDiff = timeDiffInMins(currentTime, lastOrderTime);
+        if (timeDiff > 90) {
             history["items"] = [];
         }
     }
@@ -467,44 +502,44 @@ OrderHistory.prototype.addItem = function(value){
     history["time"] = currentTime;
     this.setHistory(history)
 }
-OrderHistory.prototype.lastOrderTime = function(){
+OrderHistory.prototype.lastOrderTime = function () {
     var history = this.getHistory();
-    if(history!=null){
+    if (history != null) {
         return history["time"];
     }
-    else{
+    else {
         return -1;
     }
 }
-OrderHistory.prototype.getHistory = function(){
+OrderHistory.prototype.getHistory = function () {
     var history;
-    if(isAndroid()){
+    if (isAndroid()) {
         history = Android.readValue("history");
-    }else{
-        history = localStorage.getItem('history');        
+    } else {
+        history = localStorage.getItem('history');
     }
-    if(history==null||history==""){
+    if (history == null || history == "") {
         return null;
     }
     return JSON.parse(history);
 }
 
-OrderHistory.prototype.setHistory = function(history){
+OrderHistory.prototype.setHistory = function (history) {
     var object = JSON.stringify(history);
-    if(isAndroid()){
-       Android.saveKeyValue("history",object); 
-    }else{
-        localStorage.setItem("history",object);    
+    if (isAndroid()) {
+        Android.saveKeyValue("history", object);
+    } else {
+        localStorage.setItem("history", object);
     }
 }
-OrderHistory.prototype.getOrders = function(){
+OrderHistory.prototype.getOrders = function () {
     var history = this.getHistory();
-    if(history==null){
+    if (history == null) {
         return null;
     }
     var items = history["items"].join(",");
     var appender = new Date().getTime();
-    var url = "api/orders/details?items=" +items+ "&"+appender;
+    var url = "api/orders/details?items=" + items + "&" + appender;
     $.ajax({
         url: url,
         dataType: 'json',
@@ -517,52 +552,75 @@ OrderHistory.prototype.getOrders = function(){
         },
     });
 
-    
+
 }
-function populateOrderMenu(response){
+function populateOrderMenu(response) {
     $("#mUserName").html(response.user.name);
     $("#balance").html(response.user.credit);
     var lastOrders = response.orders;
-    var grandTotal =0;
+    var grandTotal = 0;
     $("#mOrderMenu").html("");
     $("#navpanelInner").html("");
     $("#orderSubmenu").hide();
-    for(var i=0;i<lastOrders.length;i++){
+    for (var i = 0; i < lastOrders.length; i++) {
         var line = $("#mProductName").clone();
         var product = getProduct(lastOrders[i].product);
-        if(product==null){
+        if (product == null) {
             continue;
         }
-        var genId = "mProductName"+lastOrders[i].orderId;
-        line[0].id=genId;
-        line.find("#mItem").text(product.displayName+" :")
+        var genId = "mProductName" + lastOrders[i].orderId;
+        line[0].id = genId;
+        line.find("#mItem").text(product.displayName + " :")
         var quantity = lastOrders[i].quantity;
         var price = product.sellingPrice;
-        var total = quantity*price;
-        grandTotal+=total;
-        var dtString = ""+quantity+" * "+price+" = "+total;
+        var total = quantity * price;
+        grandTotal += total;
+        var dtString = "" + quantity + " * " + price + " = " + total;
         line.find("#mDetails").text(dtString);
         $("#mOrderMenu").append(line);
     }
-   
-    if(grandTotal!=0){
+
+    if (grandTotal != 0) {
         $("#orderSubmenu").show();
-        $("#mTotal").text("Rs. "+grandTotal);
+        $("#mTotal").text("Rs. " + grandTotal);
     }
-     $("#navpanelInner").html("");
-     $("#navpanelInner").html($("#navpanel").html());
-     
-    
+    $("#navpanelInner").html("");
+    $("#navpanelInner").html($("#navpanel").html());
+
+
 }
-function getProduct(id){
-     for (i = 0; i < productCache.length; i++) {
-         if(productCache[i].name==id){
-             return productCache[i];
-         }
-     }
-     return null;
+function getProduct(id) {
+    for (i = 0; i < productCache.length; i++) {
+        if (productCache[i].name == id) {
+            return productCache[i];
+        }
+    }
+    return null;
 }
-function timeDiffInMins(t1,t2){
-    var diff = t1-t2;
-    return  Math.floor(diff/1000/60);
+function timeDiffInMins(t1, t2) {
+    var diff = t1 - t2;
+    return  Math.floor(diff / 1000 / 60);
+}
+var GPS = function () {
+
+}
+GPS.prototype.saveLocation = function () {
+    try {
+        navigator.geolocation.getCurrentPosition(handleGps);
+    }
+    catch (e) {
+
+    }
+}
+function handleGps(position) {
+    showMessage("location:" + position.coords.latitude + " long:" + position.coords.longitude);
+    var url = "api/user/location?gps=" + position.coords.latitude + "," + position.coords.longitude
+                +"&number="+getNumber();
+    $.ajax({
+        url: url,
+        type: 'GET',
+        success: function (response) {
+           
+        },
+    });
 }

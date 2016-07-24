@@ -69,14 +69,21 @@
                 margin:0; /*make the buttons flush to the top*/
             }
             .side-menu-item {
-               margin:5px;
-         
+                margin:5px;
+
             }
             #header {
                 height:54px;
             }
             #bars-button {
                 margin-top:0px;
+            }
+            .menu-button {
+                float: left;
+                width: 45%;
+                display: block;
+                padding-left: 0px;
+                padding-right: 0px;
             }
         </style>
     </head>
@@ -97,28 +104,34 @@
                 <h3> Fish Cart</h3>
             </div>  
             <div data-role="content" >
-<a  onclick="setType('FISH');
+
+
+                <a class="menu-button" onclick="setType('FISH');
+                        $('#booking').show(true);
+                        loadProducts(productCache);" data-transition='flip' href="#productPage" data-role="button" data-inline="true" >
+                    <img src="images/fish.png" class="ui-btn-bottom" />
+                </a>
+                
+                <a class="menu-button" onclick="setType('MEAT');
+                        $('#booking').hide(true);
+                        loadProducts(productCache);" data-transition='flip'  href="#productPage" data-role="button" data-inline="true" >
+                    <img src="images/meat.png" class="ui-btn-bottom" />
+                </a>
+               
+                <a class="menu-button" onclick="setType('FOOD');
+                        $('#booking').hide(true);
+                        loadProducts(productCache);" data-transition='flip'  href="#productPage" data-role="button" data-inline="true" >
+                    <img src="images/restaurant.png" class="ui-btn-bottom" />
+                </a>           
+                <a class="menu-button" onclick="setType('COOK');
+                   $('#booking').hide(true);
+                   loadProducts(productCache);" data-transition='flip'  href="#productPage" data-role="button" data-inline="true" >
+                    <img src="images/cook.png" class="ui-btn-bottom" />
+                </a>
+                <a  onclick="setType('FISH');
                         $('#booking').show(true);
                         loadProducts(productCache);" data-transition='flip' href="pricerise.html" data-role="button" data-inline="true" class="center-button ">
                     <img src="images/refer.png" class="ui-btn-bottom" />
-                </a>
-                 <br/><br/><br/>
-                <a  onclick="setType('FISH');
-                        $('#booking').show(true);
-                        loadProducts(productCache);" data-transition='flip' href="#productPage" data-role="button" data-inline="true" class="center-button ">
-                    <img src="images/fish.png" class="ui-btn-bottom" />
-                </a>
-                <br/><br/><br/>
-                <a onclick="setType('MEAT');
-                        $('#booking').hide(true);
-                        loadProducts(productCache);" data-transition='flip'  href="#productPage" data-role="button" data-inline="true" class="center-button">
-                    <img src="images/meat.png" class="ui-btn-bottom" />
-                </a>
-                <br/><br/><br/>
-                <a onclick="setType('COOK');
-                        $('#booking').hide(true);
-                        loadProducts(productCache);" data-transition='flip'  href="#productPage" data-role="button" data-inline="true" class="center-button">
-                    <img src="images/cook.png" class="ui-btn-bottom" />
                 </a>
             </div>
             <div data-role="panel" id="navpanel" data-theme="b"
@@ -155,7 +168,7 @@
 
             <div data-role="content">
                 <img style="overflow:hidden;max-width:100%;" id="innerImage" src=""/>
-                
+
                 <div id='userinfo'>
                     <label for='phone'>Contact number:</label>
                     <input type='number' id='phone'/>
