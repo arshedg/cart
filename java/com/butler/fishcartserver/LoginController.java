@@ -14,6 +14,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -72,6 +73,14 @@ public class LoginController {
             return "password exist";
         }
         return userDao.updatePassword(number.toString());
+        
+    }
+    @RequestMapping("/user/location")
+    public void saveLocation(@RequestParam(value="number") String number,@RequestParam(value="gps") String location){
+        String currenLocation = userDao.getLocation(number);
+        if(StringUtils.isEmpty(currenLocation)){
+            userDao.saveLocation(number,location);
+        }
         
     }
     private void addReferre(String no,String referred){

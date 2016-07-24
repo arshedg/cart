@@ -89,6 +89,22 @@ public class UserDao extends JdbcTemplate {
             return "Address not found";
         }
     }
+    public String getLocation(String number){
+        
+        try{
+            List<String> locations = this.query("select gps from user where number=?",new String[]{number}, new RowMapper() {
+
+            @Override
+            public Object mapRow(ResultSet rs, int i) throws SQLException {
+                return rs.getString("gps");
+            }
+        });
+        return locations.isEmpty()?null:locations.get(0);
+       // return this.getSimpleJdbcTemplate().queryForObject("select name from user where number=?", String.class, number);
+        }catch(Throwable e){
+            return null;
+        }
+    }
     public void updateUser(String name,String address,String number){
         this.update("update user set name=?,address=? where number=?", name,address,number);
     }
@@ -125,6 +141,10 @@ public class UserDao extends JdbcTemplate {
             }
         }
         return users.get(0);
+    }
+
+    public void saveLocation(String number,String location) {
+        int changes = this.update("update user set gps=? where number=?", location,number);
     }
 
  
