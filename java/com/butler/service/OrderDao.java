@@ -35,9 +35,9 @@ public class OrderDao extends JdbcTemplate {
     @Autowired
     UserDao userDao;
    
-    public int placeOrder(String number, String order, float quantity, boolean isImmediate){
+    public int placeOrder(String number, String order, float quantity, boolean isImmediate,String slot){
         KeyHolder holder = new GeneratedKeyHolder();
-        String sql = "insert into orders(number,product,quantity,status,immediate) values(?,?,?,?,?)";
+        String sql = "insert into orders(number,product,quantity,status,immediate,slot) values(?,?,?,?,?,?)";
         this.update(new PreparedStatementCreator() {           
 
                 @Override
@@ -49,6 +49,7 @@ public class OrderDao extends JdbcTemplate {
                     ps.setFloat(3, quantity);
                     ps.setString(4, "TODO");
                     ps.setBoolean(5, isImmediate);
+                    ps.setString(6, slot);
                     return ps;
                 }
             }, holder);

@@ -30,13 +30,14 @@ public class OrderController {
     public String placeOrder(@RequestParam(value="number") String number,
             @RequestParam(value="product") String productID,
             @RequestParam(value="quantity") float quantity,
-            @RequestParam(value="immediate", required = false) boolean isImmediate)
+            @RequestParam(value="immediate", required = false) boolean isExpress,
+            @RequestParam(value="slot", required = false) String slot)
     {
         
         try{
             validateNumber(number);
             initUser(number);     
-            long value = orderDao.placeOrder(number, productID, quantity,isImmediate);
+            long value = orderDao.placeOrder(number, productID, quantity,isExpress,slot);
             alertDelivery(number, productID, quantity);
             return "SUCCESS:"+value;
         }catch(NumberFormatException exception){
