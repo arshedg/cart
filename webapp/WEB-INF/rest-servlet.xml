@@ -41,4 +41,7 @@
     <bean id="referralDao" class="com.butler.service.ReferralDao">
       <property name="dataSource" ref="dataSource"/>
    </bean>
+     <bean id="feedbackDao" class="com.butler.service.FeedbackDao">
+      <property name="dataSource" ref="dataSource"/>
+   </bean>
   </beans>

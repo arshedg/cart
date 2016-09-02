@@ -50,6 +50,7 @@ function onBodyLoaded() {
     });
     configureHeader();
     initProducts();
+    hideDeliveryCharges();
     //runMigration();
     $("input[name='timing']").bind("change", function (event, ui) {
         computeDiscount(event, ui);
@@ -113,37 +114,30 @@ function isAndroid() {
     }
 }
 function createDom(product) {
-    var linkInformation = "<li id='" + product.name + "'><a class='item-link' href='#popupInfo' data-transition='flip' onClick=\"setPrice(" + product.sellingPrice + ", '" + product.name + "');\"> ";
-    var image = "<img src='" + product.pic + "'>";
-    var title = '<h1 class="myHeader">' + product.displayName + '</h1>';
-    var price = '<div class="myParagraph">' +
-            '<div class="row">' +
-            getPriceDom(product.marketPrice, product.sellingPrice) +
-            '</div>' +
-            '</div>';
-    var size = '<div class="size"><span>' + product.sizeSpecification + '</span></div>';
+    var linkInformation = "<li class='Container' id='" + product.name + "' onClick=\"setPrice(" + product.sellingPrice + ", '" + product.name + "');\"> <a href='#popupInfo'> ";
+    var image = "<img class='PImage' src='" + "api/product/image/large?name=" + product.name + "'>";
+    var title = '<div class="PHeader">' + product.displayName + ':&nbsp;';
+    var size = '<span class="PDetails">' + product.sizeSpecification + '</span></div>';
+    var price = '<div class="priceBoard">₹' + computePrice(product.sellingPrice) + '</div>';
+
     if (product.bookingOnly == true) {
         size += '<div class="size"><span><b>' + 'Only booking avaiable' + '</b></span></div>';
     }
 
     var closingTags = "</a></li>";
-    return linkInformation + image + title + price + size + closingTags;
+    return linkInformation + image + title + size + price + closingTags;
 
 }
-function getPriceDom(mPrice, sPrice) {
+function computePrice(mPrice) {
     var spec = new DefaultStep();
     if (isCook) {
         spec = new CookStep();
     } else if (isFood) {
         spec = new FoodStep();
     }
-    var sellingPrice = spec.initialStep * sPrice;
-    var marketPrice = spec.initialStep * mPrice;
-    var priceDom = '<span class="offer-price">Rs.' + sellingPrice + '</span>';
-    if (marketPrice !== sellingPrice) {
-        priceDom = '<span class="actual-price">Rs.' + mPrice + '</span>&nbsp;' + priceDom;
-    }
-    return priceDom;
+
+    var computedPrice = spec.initialStep * mPrice;
+    return computedPrice;
 }
 function validateNumber() {
     if (!isAndroid()) {
@@ -173,8 +167,12 @@ function validateContext() {
         $.mobile.back();
     }
 }
+function hideDeliveryCharges(){
+      
+       $("#warning").hide();
+}
 function placeOrder() {
-  
+
     validateContext();
     if (!validateNumber())
         return;
@@ -189,7 +187,12 @@ function placeOrder() {
     if (isFish) {
         immediate = !($("#lLater").hasClass("ui-radio-on"));
     }
-    var url = "api/placeOrder?number=" + no + "&product=" + item + "&quantity=" + quantity + "&immediate=" + immediate;
+    var slot = $("input[name='timing']:checked").siblings()[0].textContent;
+    var url = "api/placeOrder?number=" + no 
+            + "&product=" + item + 
+            "&quantity=" + quantity + 
+            "&immediate=" + immediate +
+            "&slot=" +slot;
     var appender = new Date().getTime();
     url += "&appender=" + appender;
     $.ajax({
@@ -247,8 +250,7 @@ function initProducts() {
         }, //Show spinner
         complete: function () {
             $.mobile.loading('hide');
-            initTimer = setTimeout(initProducts, 1000 * 60 * 10);
-            lastUpdatedTime = getCurrentTime();
+           
         }, //Hide spinner
         url: url,
         dataType: 'json',
@@ -257,6 +259,8 @@ function initProducts() {
         }
         ,
         success: function (response) {
+            initTimer = setTimeout(initProducts, 1000 * 60 * 10);
+            lastUpdatedTime = getCurrentTime();
             loadProducts(response);
             (new OrderHistory()).getOrders();
         },
@@ -264,14 +268,15 @@ function initProducts() {
 
 }
 function handeNetworkError() {
-    $("<div class='ui-loader ui-overlay-shadow ui-body-e ui-corner-all'><h1>Network Issue, Trying to reload</h1></div>")
+    $("<div style='background-color:white;margin:auto;position:absolute;top:0;left:0;right:0' class='ui-loader ui-overlay-shadow ui-body-e ui-corner-all'><h1>Network Issue, Trying to reload...<br/>Please check your internet connection</h1></div>")
             .css({"display": "block", "opacity": 1, "top": $(window).scrollTop() + 100})
             .appendTo($.mobile.pageContainer)
             .delay(3000)
             .fadeOut(2000, function () {
                 $(this).remove();
             });
-    setTimeout(initProducts, 5);
+    $.mobile.loading('show');
+    setTimeout(initProducts, 1000);
 }
 function isOnlyBooking(product) {
     if (product.bookingOnly == true) {
@@ -281,15 +286,49 @@ function isOnlyBooking(product) {
     }
     return false;
 }
+function timingHtml(id,label){
+    var emergency="";
+    if(label.match("Emergency")){
+        emergency="emergency=\"true\"";
+    }
+    if(label.match("Immediate")){
+        emergency="immediate=\"true\"";
+    }
+    var inp = '<input  type="radio" name="timing" id="'+id+'" value="on" checked="checked"'+emergency+'>'
+    var name = '<label class="ui-mini"  for="'+id+'">'+label+'</label>';
+    return inp+name;
+}
+function showDeliveryCharge(e,u){
+    if(e.currentTarget.attributes["emergency"]){
+        $("#tip").hide();
+        $("#warning").show();
+         $("#dBox").hide();
+    }
+    else if(e.currentTarget.attributes["immediate"]){
+         $("#tip").hide();
+        $("#warning").hide();
+         $("#dBox").hide();
+    }
+    else{
+        $("#tip").hide();
+        $("#warning").hide();
+         $("#dBox").hide();
+    }
+
+}
+
 function enableImmediate(product) {
-    if (isOnlyBooking(product)) {
-        return;
+    var slots = new Slot().getSlots();
+     $("#timingControler").controlgroup("container").empty();
+    for(var i=0;i<slots.length;i++){
+        $("#timingControler").controlgroup("container").append(timingHtml("slot"+i,slots[i]));
     }
-    if (isFish) {
-        $("#now").parent().show(true);
-        $('#now').trigger("click").trigger("click");
-        $("#dBox").hide(true);
-    }
+    $("#timingControler").enhanceWithin().controlgroup("refresh");
+
+    $('#slot0').trigger("click").trigger("click");
+    $("input[name='timing']").bind("change", function (event, ui) {
+        showDeliveryCharge(event, ui);
+    });
 }
 function setSliderAndAmount() {
     var sValue = new DefaultStep();
@@ -310,15 +349,19 @@ function setSliderAndAmount() {
 }
 function computeDiscount(e, u) {
     var needDiscount = e.target.id == "later";
-    if (needDiscount) {
+    if (needDiscount && isFish) {
         $("#dBox").show(true);
-        $("#tip").hide(true);
+        $("#tip").hide();
         var discount = $("#amountText").val() * .95;
         discount = discount.toFixed(0);
         $("#dPrice").val(discount);
     } else {
         $("#dBox").hide(true);
-        $("#tip").show(true);
+        $("#tip").hide();
+    }
+    if (!isFish) {
+        $("#dBox").hide(true);
+        $("#tip").hide();
     }
 }
 function setPrice(price, itemName) {
@@ -396,7 +439,7 @@ function loadProducts(products) {
     } else {
         $("#filterPanel").hide(true);
     }
-    $("#productList").empty();
+    $("#productList").empty();//todo
     var i = 0;
     productCache = products;
     for (i = 0; i < products.length; i++) {
@@ -440,7 +483,9 @@ function getSelectedProduct(name) {
         }
     }
 }
-
+function goBack() {
+    window.history.back();
+}
 function getNumber() {
     if (!isAndroid()) {
         return getNumberFromBrowser();
@@ -458,6 +503,7 @@ function forceRefresh() {
         return;
     }
 }
+
 var CookStep = function () {
     this.initialStep = 12;
     this.minStep = 12;
@@ -475,11 +521,11 @@ var FoodStep = function () {
 
 }
 var DefaultStep = function () {
-    this.initialStep = 1;
+    this.initialStep = .5;
     this.minStep = .5;
     this.maxStep = 5;
     this.stepSize = .5;
-    this.unitDescription = "Price per KG:";
+    this.unitDescription = "Price per 500gms:";
 
 }
 var OrderHistory = function () {
@@ -496,11 +542,32 @@ OrderHistory.prototype.addItem = function (value) {
         var timeDiff = timeDiffInMins(currentTime, lastOrderTime);
         if (timeDiff > 90) {
             history["items"] = [];
+            history.rated=false;
         }
     }
     history["items"].push(value);
     history["time"] = currentTime;
     this.setHistory(history)
+}
+OrderHistory.prototype.askForRating = function () {
+    var history = this.getHistory();
+    if (history == null) {
+        return;
+    }
+    if (history.rated == true) {
+        return;
+    }
+    var lstTime = this.lastOrderTime();
+    var currentTime = new Date().getTime()
+    var timeDiff = timeDiffInMins(currentTime, lstTime);
+    if (timeDiff > 60 * 12) {//after 12 hours
+        $.mobile.changePage("#rating");
+    }
+}
+OrderHistory.prototype.rated = function(){
+    var history = this.getHistory();
+    history.rated=true;
+    this.setHistory(history);
 }
 OrderHistory.prototype.lastOrderTime = function () {
     var history = this.getHistory();
@@ -549,14 +616,17 @@ OrderHistory.prototype.getOrders = function () {
         ,
         success: function (response) {
             populateOrderMenu(response);
+            new OrderHistory().askForRating();
         },
     });
 
 
 }
 function populateOrderMenu(response) {
-    $("#mUserName").html(response.user.name);
-    $("#balance").html(response.user.credit);
+    if(response.user){
+        $("#mUserName").html(response.user.name);
+        $("#balance").html(response.user.credit);
+    }
     var lastOrders = response.orders;
     var grandTotal = 0;
     $("#mOrderMenu").html("");
@@ -604,6 +674,58 @@ function timeDiffInMins(t1, t2) {
 var GPS = function () {
 
 }
+var Slot=function(){
+   
+
+   
+}
+Slot.prototype.getSlots = function(){
+    var date = new Date();
+    var hour = date.getHours();
+    var tommorow = "<br/><span style='font-size:x-small' class='ui-mini'>tomorrow</span>";
+    var today = "<br/><span style='font-size:x-small' class='ui-mini'>today</span>";
+    var from7="7:00am-9:00am";
+    var from10 = "10:00am-12:30pm";
+    var from5 = "5:00pm-8:00pm";
+    var emergency = "Emergency Delivery<br/><span style='font-size:x-small' class='ui-mini'>Within 60 mins or it's free</span>";
+    if(isFood&&hour>10&&hour<=21){
+        return ["Immediate"];
+    }else if(isFood&&hour<=10){
+        return ["12:00pm-1:00pm"];
+    }else if(isFood&&hour>21){
+        return ["12:00pm-1:00pm"+tommorow];
+    }
+    if(hour>=17&&hour<21){
+        return [from7+tommorow,
+                from10+tommorow,
+                from5+tommorow,
+                emergency];
+    }
+    if(hour>=21){
+        return ["7:00am-9:00am"+tommorow,
+                "10:00am-12:30pm"+tommorow,
+                "5:00pm-8:00pm"+tommorow];
+    }
+    if(hour<=5){
+        return ["7:00am-9:00am"+today,
+                "10:00am-12:30pm"+today,
+                "5:00pm-8:00pm"+today];
+    }
+    if(hour<10){
+        return [from10+today,
+                from5+today,
+                from7+tommorow,
+               emergency];
+    }
+    
+    if(hour<17){
+        return [from5+today,
+            from7+tommorow,
+            from10+tommorow,
+            from5+tommorow,
+            emergency];
+    }
+}
 GPS.prototype.saveLocation = function () {
     try {
         navigator.geolocation.getCurrentPosition(handleGps);
@@ -613,14 +735,67 @@ GPS.prototype.saveLocation = function () {
     }
 }
 function handleGps(position) {
-    showMessage("location:" + position.coords.latitude + " long:" + position.coords.longitude);
     var url = "api/user/location?gps=" + position.coords.latitude + "," + position.coords.longitude
-                +"&number="+getNumber();
+            + "&number=" + getNumber();
     $.ajax({
         url: url,
         type: 'GET',
         success: function (response) {
-           
+
         },
     });
+}
+
+function Feedback() {
+    var number;
+    var productRating;
+    var deliveryRating;
+    var comment;
+    var relatedOrder;
+}
+
+function saveFeedback(pRating, dRating, message) {
+    var feedback = new Feedback();
+    feedback.number = getNumber();
+    feedback.productRating = pRating;
+    feedback.deliveryRating = dRating;
+    feedback.comment = message;
+    var history = new OrderHistory().getHistory();
+    if (history == null) {
+        window.history.back();
+        return;
+    }
+    feedback.relatedOrder = history.items[0];
+    var json = JSON.stringify(feedback);
+    var url = "api/feedback";
+
+    $.ajax({
+        url: url,
+        type: 'POST',
+        data: json,
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        complete: function (data) {
+           new OrderHistory().rated();
+           
+        }
+    });
+    $.mobile.changePage("#");
+}
+function submitFeedback(src) {
+    var delivery = document.querySelector('input[name="dRating"]:checked');
+    var product = document.querySelector('input[name="qRating"]:checked');
+    if (delivery == null || product == null) {
+        $("<div class='ui-loader ui-overlay-shadow ui-body-e ui-corner-all'><h1>Please provide rating.</h1></div>")
+                .css({"display": "block", "opacity": 0.96, "top": $(window).scrollTop() + 100})
+                .appendTo($.mobile.pageContainer)
+                .delay(800)
+                .fadeOut(400, function () {
+                    $(this).remove();
+                });
+        return;
+    }
+    var message = $("#feedbackMessage").val();
+    saveFeedback(product.value, delivery.value, message);
+
 }

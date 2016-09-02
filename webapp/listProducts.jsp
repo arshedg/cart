@@ -37,6 +37,61 @@
 
         </script>
         <style>
+            .rating {
+                float:left;
+            }
+
+            /* :not(:checked) is a filter, so that browsers that don’t support :checked don’t 
+               follow these rules. Every browser that supports :checked also supports :not(), so
+               it doesn’t make the test unnecessarily selective */
+            .rating:not(:checked) > input {
+                position:absolute;
+                top:-9999px;
+                clip:rect(0,0,0,0);
+            }
+
+            .rating:not(:checked) > label {
+                float:right;
+                width:1em;
+                padding:0 .1em;
+                overflow:hidden;
+                white-space:nowrap;
+                cursor:pointer;
+                font-size:200%;
+                line-height:1.2;
+                color:#ddd;
+                text-shadow:1px 1px #bbb, 2px 2px #666, .1em .1em .2em rgba(0,0,0,.5);
+            }
+
+            .rating:not(:checked) > label:before {
+                content: '★ ';
+            }
+
+            .rating > input:checked ~ label {
+                color: #f70;
+                text-shadow:1px 1px #c60, 2px 2px #940, .1em .1em .2em rgba(0,0,0,.5);
+            }
+
+            .rating:not(:checked) > label:hover,
+            .rating:not(:checked) > label:hover ~ label {
+                color: gold;
+                text-shadow:1px 1px goldenrod, 2px 2px #B57340, .1em .1em .2em rgba(0,0,0,.5);
+            }
+
+            .rating > input:checked + label:hover,
+            .rating > input:checked + label:hover ~ label,
+            .rating > input:checked ~ label:hover,
+            .rating > input:checked ~ label:hover ~ label,
+            .rating > label:hover ~ input:checked ~ label {
+                color: #ea0;
+                text-shadow:1px 1px goldenrod, 2px 2px #B57340, .1em .1em .2em rgba(0,0,0,.5);
+            }
+
+            .rating > label:active {
+                position:relative;
+                top:2px;
+                left:2px;
+            }
             #side-menu-button {
                 left: auto;
                 right: 0;
@@ -85,6 +140,79 @@
                 padding-left: 0px;
                 padding-right: 0px;
             }
+
+            .BoxParent{
+                list-style-type:none;
+                padding-left:5px;
+            }
+            .Container{
+                width:100%;
+                max-width:500px;
+                height:100%;
+                border-style: solid;
+                border-color:#f6f6f6;
+                margin-bottom:5px;
+                background-color: white;
+                position: relative;
+            }
+            .PImage{  
+                width:100%;
+                height:100%;
+                max-height:220px;
+            }
+            .PHeader{
+                float:center;
+                position:absolute;
+                opacity: 0.9;
+                left:0;
+                bottom:2px;
+                background-color: white;
+                font-weight: bold;
+                padding:5px;
+
+            }
+            .PDetails{  
+                font-weight: lighter;
+                color:black;
+
+            }
+
+            .priceBoard {
+                position: absolute;
+                top: 2px;
+                right:2px;
+                margin:2px;
+                opacity: 0.85;
+                -moz-box-shadow: 0px 1px 0px 0px #0f6d96;
+                -webkit-box-shadow: 0px 1px 0px 0px #0f6d96;
+                box-shadow: 0px 1px 0px 0px #0f6d96;
+                background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #01a0da), color-stop(1, #01a0da));
+                background:-moz-linear-gradient(top, #01a0da 5%, #01a0da 100%);
+                background:-webkit-linear-gradient(top, #01a0da 5%, #01a0da 100%);
+                background:-o-linear-gradient(top, #01a0da 5%, #01a0da 100%);
+                background:-ms-linear-gradient(top, #01a0da 5%, #01a0da 100%);
+                background:linear-gradient(to bottom, #01a0da 5%, #01a0da 100%);
+                filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#01a0da', endColorstr='#01a0da',GradientType=0);
+                background-color:#01a0da;
+
+                display:inline-block;
+                cursor:pointer;
+                color:#ffffff;
+                font-family:Arial;
+                font-size:18px;
+                font-weight:bold;
+                padding-top: 5px;
+                padding-bottom: 5px;
+
+                text-decoration:none;
+                text-shadow:0px -1px 0px #5b6178;
+            }
+
+            a:hover, a:visited, a:link, a:active
+            {
+                text-decoration: none;
+            }
+
         </style>
     </head>
     <body>
@@ -107,29 +235,29 @@
 
 
                 <a class="menu-button" onclick="setType('FISH');
-                        $('#booking').show(true);
+
                         loadProducts(productCache);" data-transition='flip' href="#productPage" data-role="button" data-inline="true" >
                     <img src="images/fish.png" class="ui-btn-bottom" />
                 </a>
-                
+
                 <a class="menu-button" onclick="setType('MEAT');
-                        $('#booking').hide(true);
+
                         loadProducts(productCache);" data-transition='flip'  href="#productPage" data-role="button" data-inline="true" >
                     <img src="images/meat.png" class="ui-btn-bottom" />
                 </a>
-               
+
                 <a class="menu-button" onclick="setType('FOOD');
-                        $('#booking').hide(true);
+
                         loadProducts(productCache);" data-transition='flip'  href="#productPage" data-role="button" data-inline="true" >
                     <img src="images/restaurant.png" class="ui-btn-bottom" />
                 </a>           
                 <a class="menu-button" onclick="setType('COOK');
-                   $('#booking').hide(true);
-                   loadProducts(productCache);" data-transition='flip'  href="#productPage" data-role="button" data-inline="true" >
+
+                        loadProducts(productCache);" data-transition='flip'  href="#productPage" data-role="button" data-inline="true" >
                     <img src="images/cook.png" class="ui-btn-bottom" />
                 </a>
                 <a  onclick="setType('FISH');
-                        $('#booking').show(true);
+
                         loadProducts(productCache);" data-transition='flip' href="pricerise.html" data-role="button" data-inline="true" class="center-button ">
                     <img src="images/refer.png" class="ui-btn-bottom" />
                 </a>
@@ -163,7 +291,8 @@
 
         <div data-role="page" id="popupInfo">
             <div data-role="header" >
-                <h3 style="margin-left:0px;" id="productName">Mathy sardine</h3> 
+                <a id="side-menu-button2" data-icon="carat-l"  class="ui-btn-left" style="margin-top:0px;" onclick="goBack();" href="">Back</a>
+                <h3 style="margin-left:0px;margin-right:0px;" id="productName">Mathy sardine</h3> 
             </div>
 
             <div data-role="content">
@@ -184,18 +313,15 @@
                 <input type="range" name="quantity" id="quantity-step" value="1" min=".5" max="5" step=".5"  data-highlight="true" />
 
                 <div id="booking">
-                    <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
-                        <legend>Delivery Time:</legend>
+                    <fieldset data-role="controlgroup" id="timingControler" data-type="horizontal" data-mini="true">
+                        <legend>Slot:</legend>
 
-                        <input   type="radio" name="timing" id="now" value="on" checked="checked">
-                        <label id="lNow" for="now">Right now</label>
-                        <input  type="radio" name="timing" id="later" value="off">
-                        <label id="lLater"for="later">Tomorrow morning</label>
+                 
 
                     </fieldset>
-                    <div id="tip" class="alert-box notice"><span>Tip:</span>Book fish for tomorrow and get 5% discount.</div>
-
-                    <div id="dBox" class="alert-box discount"><span><b>You will have 5% discount .</b></span><input  id="dPrice" readonly="true" type="text"/></div>
+                    <div id="tip" style="display:none" class="alert-box notice"><span>Slot offer:</span>Get 5% discount if this slot is selected.</div>
+                     <div id="warning" class="alert-box notice" ><span>Delivery Charge:</span>Delivery charge of Rs.50 will be applied. We guarantee delivery within 1 hour. If late, you don't need to pay for the product.</div>
+                    <div id="dBox" style="display:none" class="alert-box discount"><span><b>You will have 5% discount .</b></span><input  id="dPrice" readonly="true" type="text"/></div>
 
                 </div>
                 <div data-role="fieldcontain">
@@ -215,8 +341,10 @@
         <div data-role="page" class="type-home" id="productPage">
             <div data-role="header" id="mainHeader" >
 
-                <img src="images/icon.png" class="ui-btn-left" />
+
                 <h3> Fish Cart</h3>
+                <a id="side-menu-button2" data-icon="carat-l"  class="ui-btn-left" style="margin-top:0px;" onclick="goBack();" href="">Back</a>
+
                 <a id="side-menu-button" data-icon="bars"  class="ui-btn-right" style="margin-top:0px;" href="#navpanelInner">Menu</a>
 
             </div>
@@ -232,7 +360,7 @@
                     <label id="lLater"for="premium">Premium</label>
 
                 </fieldset>
-                <ul data-role="listview" id="productList" data-inset="true" data-theme="c" data-dividertheme="a">
+                <ul  id="productList" class="BoxParent">
                 </ul>
                 <div data-role="footer" data-theme="c">
                     <ul>
@@ -269,7 +397,40 @@
             <li id="mProductName"><span id="mItem"></span><br/> <span id="mDetails" style=""></span></li> 
         </div>
     </div>
-
+    <div data-role="page" class="type-home" id="rating">
+        <div data-role="header">
+            <h2>Rating</h2>
+        </div>
+        <div role="main" class="ui-content">
+            <div >
+                <fieldset id="qualityRating" data-role="none" class="rating" style="width:100%">
+                    <legend data-role="none">Quality of the Product:</legend>                  
+                    <input data-role="none" type="radio" id="star5" name="qRating" value="5" /><label for="star5" title="Rocks!">5 stars</label>
+                    <input data-role="none" type="radio" id="star4" name="qRating" value="4" /><label for="star4" title="Pretty good">4 stars</label>
+                    <input data-role="none" type="radio" id="star3" name="qRating" value="3" /><label for="star3" title="Meh">3 stars</label>
+                    <input data-role="none" type="radio" id="star2" name="qRating" value="2" /><label for="star2" title="Kinda bad">2 stars</label>
+                    <input data-role="none" type="radio" id="star1" name="qRating" value="1" /><label for="star1" title="Sucks big time">1 star</label>
+                   
+                </fieldset>
+               
+              <fieldset id="productRating" data-role="none" class="rating" style="width:100%">
+                    <legend data-role="none">Delivery and Service:</legend>
+                    <input data-role="none" type="radio" id="dstar5" name="dRating" value="5" /><label for="dstar5" title="Rocks!">5 stars</label>
+                    <input data-role="none" type="radio" id="dstar4" name="dRating" value="4" /><label for="dstar4" title="Pretty good">4 stars</label>
+                    <input data-role="none" type="radio" id="dstar3" name="dRating" value="3" /><label for="dstar3" title="Meh">3 stars</label>
+                    <input data-role="none" type="radio" id="dstar2" name="dRating" value="2" /><label for="dstar2" title="Kinda bad">2 stars</label>
+                    <input data-role="none" type="radio" id="dstar1" name="dRating" value="1" /><label for="dstar1" title="Sucks big time">1 star</label>
+                </fieldset>
+                
+                
+            </div>
+            <div >
+                <label for="feedbackMessage" style="position:float;left:0px">Feed back:</label>
+                <textarea rows="10" name="feedbackMessage" id="feedbackMessage" ></textarea>
+                <input id="feedbackButton" type="button" value="Submit" onclick="submitFeedback()">
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
