@@ -32,6 +32,14 @@ public class UserDao extends JdbcTemplate {
         }
         return null;
     }
+     public String saveUser(String name, long number,String address) {
+        String identity = generatePassword(number);
+        int changes =  this.update("insert into user(name,number,address) values(?,?,?) ", name,number,address);
+        if(changes==1){//on success
+            return identity;
+        }
+        return null;
+    }
     public String generatePassword(Long number){
         return number.toString()+System.currentTimeMillis();
     }
@@ -108,7 +116,12 @@ public class UserDao extends JdbcTemplate {
     public void updateUser(String name,String address,String number){
         this.update("update user set name=?,address=? where number=?", name,address,number);
     }
-    
+    public void updateAddress(String address,String number){
+        if(address==null||address.trim().equals("")||address.trim().equals("undefined")){
+            return;
+        }
+        this.update("update user set address=? where number=?", address,number);
+    }
     public String updatePassword(String number){
         String password = this.generatePassword(Long.valueOf(number));
         int changes = this.update("update user set identity=? where number=?", password,number);

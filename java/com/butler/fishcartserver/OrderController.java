@@ -31,12 +31,13 @@ public class OrderController {
             @RequestParam(value="product") String productID,
             @RequestParam(value="quantity") float quantity,
             @RequestParam(value="immediate", required = false) boolean isExpress,
-            @RequestParam(value="slot", required = false) String slot)
+            @RequestParam(value="slot", required = false) String slot,
+            @RequestParam(value="address",required=false)String address)
     {
         
         try{
             validateNumber(number);
-            initUser(number);     
+            initUser(number,address);     
             long value = orderDao.placeOrder(number, productID, quantity,isExpress,slot);
             alertDelivery(number, productID, quantity);
             return "SUCCESS:"+value;
@@ -64,9 +65,10 @@ public class OrderController {
         PushNotifier.sendNotification();
     }
 
-    private boolean initUser(String number) {
+    private boolean initUser(String number,String address) {
 
        if(userDao.doesNumberExist( Long.valueOf(number))){
+           userDao.updateAddress(address, number);
            return true;
        }
        userDao.saveUser("Auto generated", Long.valueOf(number));
