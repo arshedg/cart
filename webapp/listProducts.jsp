@@ -233,7 +233,6 @@
             </div>  
             <div data-role="content" >
 
-
                 <a class="menu-button" onclick="setType('FISH');
 
                         loadProducts(productCache);" data-transition='flip' href="#productPage" data-role="button" data-inline="true" >
@@ -316,11 +315,11 @@
                     <fieldset data-role="controlgroup" id="timingControler" data-type="horizontal" data-mini="true">
                         <legend>Slot:</legend>
 
-                 
+
 
                     </fieldset>
                     <div id="tip" style="display:none" class="alert-box notice"><span>Slot offer:</span>Get 5% discount if this slot is selected.</div>
-                     <div id="warning" class="alert-box notice" ><span>Delivery Charge:</span>Delivery charge of Rs.50 will be applied. We guarantee delivery within 1 hour. If late, you don't need to pay for the product.</div>
+                    <div id="warning" class="alert-box notice" ><span>Delivery Charge:</span>Delivery charge of Rs.50 will be applied. We guarantee delivery within 1 hour. If late, you don't need to pay for the product.</div>
                     <div id="dBox" style="display:none" class="alert-box discount"><span><b>You will have 5% discount .</b></span><input  id="dPrice" readonly="true" type="text"/></div>
 
                 </div>
@@ -328,7 +327,8 @@
                     <label  data-theme="d"  for="amountText"><b>Amount:</b></label>
                     <input data-theme="d"  type="text" name="clear" id="amountText" value="0" readonly="true">
                 </div>
-
+                <label id="lLater"for="address">Address</label>
+                <textarea row="5" type='text' id='address'></textarea>  
                 <input id="orderButton" type="submit" value="PLACE ORDER" onclick="placeOrder()">
                 <div id="response"></div>
             </div>
@@ -410,10 +410,10 @@
                     <input data-role="none" type="radio" id="star3" name="qRating" value="3" /><label for="star3" title="Meh">3 stars</label>
                     <input data-role="none" type="radio" id="star2" name="qRating" value="2" /><label for="star2" title="Kinda bad">2 stars</label>
                     <input data-role="none" type="radio" id="star1" name="qRating" value="1" /><label for="star1" title="Sucks big time">1 star</label>
-                   
+
                 </fieldset>
-               
-              <fieldset id="productRating" data-role="none" class="rating" style="width:100%">
+
+                <fieldset id="productRating" data-role="none" class="rating" style="width:100%">
                     <legend data-role="none">Delivery and Service:</legend>
                     <input data-role="none" type="radio" id="dstar5" name="dRating" value="5" /><label for="dstar5" title="Rocks!">5 stars</label>
                     <input data-role="none" type="radio" id="dstar4" name="dRating" value="4" /><label for="dstar4" title="Pretty good">4 stars</label>
@@ -421,8 +421,8 @@
                     <input data-role="none" type="radio" id="dstar2" name="dRating" value="2" /><label for="dstar2" title="Kinda bad">2 stars</label>
                     <input data-role="none" type="radio" id="dstar1" name="dRating" value="1" /><label for="dstar1" title="Sucks big time">1 star</label>
                 </fieldset>
-                
-                
+
+
             </div>
             <div >
                 <label for="feedbackMessage" style="position:float;left:0px">Feed back:</label>

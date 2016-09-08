@@ -167,9 +167,9 @@ function validateContext() {
         $.mobile.back();
     }
 }
-function hideDeliveryCharges(){
-      
-       $("#warning").hide();
+function hideDeliveryCharges() {
+
+    $("#warning").hide();
 }
 function placeOrder() {
 
@@ -188,15 +188,17 @@ function placeOrder() {
         immediate = !($("#lLater").hasClass("ui-radio-on"));
     }
     var slot = $("input[name='timing']:checked").siblings()[0].textContent;
-    var url = "api/placeOrder?number=" + no 
-            + "&product=" + item + 
-            "&quantity=" + quantity + 
+    var url = "api/placeOrder?number=" + no
+            + "&product=" + item +
+            "&quantity=" + quantity +
             "&immediate=" + immediate +
-            "&slot=" +slot;
+            "&slot=" + slot;
     var appender = new Date().getTime();
     url += "&appender=" + appender;
+    var address = "address=" + $("#address").val();
     $.ajax({
         type: 'POST',
+        data: address,
         beforeSend: function (request) {
             $.mobile.loading('show');
             request.setRequestHeader("Cache-Control", "no-cache");
@@ -250,7 +252,7 @@ function initProducts() {
         }, //Show spinner
         complete: function () {
             $.mobile.loading('hide');
-           
+
         }, //Hide spinner
         url: url,
         dataType: 'json',
@@ -286,42 +288,42 @@ function isOnlyBooking(product) {
     }
     return false;
 }
-function timingHtml(id,label){
-    var emergency="";
-    if(label.match("Emergency")){
-        emergency="emergency=\"true\"";
+function timingHtml(id, label) {
+    var emergency = "";
+    if (label.match("Emergency")) {
+        emergency = "emergency=\"true\"";
     }
-    if(label.match("Immediate")){
-        emergency="immediate=\"true\"";
+    if (label.match("Immediate")) {
+        emergency = "immediate=\"true\"";
     }
-    var inp = '<input  type="radio" name="timing" id="'+id+'" value="on" checked="checked"'+emergency+'>'
-    var name = '<label class="ui-mini"  for="'+id+'">'+label+'</label>';
-    return inp+name;
+    var inp = '<input  type="radio" name="timing" id="' + id + '" value="on" checked="checked"' + emergency + '>'
+    var name = '<label class="ui-mini"  for="' + id + '">' + label + '</label>';
+    return inp + name;
 }
-function showDeliveryCharge(e,u){
-    if(e.currentTarget.attributes["emergency"]){
+function showDeliveryCharge(e, u) {
+    if (e.currentTarget.attributes["emergency"]) {
         $("#tip").hide();
         $("#warning").show();
-         $("#dBox").hide();
+        $("#dBox").hide();
     }
-    else if(e.currentTarget.attributes["immediate"]){
-         $("#tip").hide();
-        $("#warning").hide();
-         $("#dBox").hide();
-    }
-    else{
+    else if (e.currentTarget.attributes["immediate"]) {
         $("#tip").hide();
         $("#warning").hide();
-         $("#dBox").hide();
+        $("#dBox").hide();
+    }
+    else {
+        $("#tip").hide();
+        $("#warning").hide();
+        $("#dBox").hide();
     }
 
 }
 
 function enableImmediate(product) {
     var slots = new Slot().getSlots();
-     $("#timingControler").controlgroup("container").empty();
-    for(var i=0;i<slots.length;i++){
-        $("#timingControler").controlgroup("container").append(timingHtml("slot"+i,slots[i]));
+    $("#timingControler").controlgroup("container").empty();
+    for (var i = 0; i < slots.length; i++) {
+        $("#timingControler").controlgroup("container").append(timingHtml("slot" + i, slots[i]));
     }
     $("#timingControler").enhanceWithin().controlgroup("refresh");
 
@@ -542,7 +544,7 @@ OrderHistory.prototype.addItem = function (value) {
         var timeDiff = timeDiffInMins(currentTime, lastOrderTime);
         if (timeDiff > 90) {
             history["items"] = [];
-            history.rated=false;
+            history.rated = false;
         }
     }
     history["items"].push(value);
@@ -561,12 +563,15 @@ OrderHistory.prototype.askForRating = function () {
     var currentTime = new Date().getTime()
     var timeDiff = timeDiffInMins(currentTime, lstTime);
     if (timeDiff > 60 * 12) {//after 12 hours
-        $.mobile.changePage("#rating");
+        setTimeout(function(){ 
+             $.mobile.changePage("#rating");
+        }, 2000);
+       
     }
 }
-OrderHistory.prototype.rated = function(){
+OrderHistory.prototype.rated = function () {
     var history = this.getHistory();
-    history.rated=true;
+    history.rated = true;
     this.setHistory(history);
 }
 OrderHistory.prototype.lastOrderTime = function () {
@@ -622,10 +627,33 @@ OrderHistory.prototype.getOrders = function () {
 
 
 }
+var Location = function () {
+
+}
+Location.prototype.save = function (location) {
+    if (isAndroid()) {
+        Android.saveKeyValue("location", location);
+    } else {
+        localStorage.setItem("location", location);
+    }
+}
+Location.prototype.getLocation = function () {
+    var location = null;
+    if (isAndroid()) {
+        location = Android.readValue("location");
+    } else {
+       location= localStorage.getItem("location");
+    }
+    if(location===null){
+         $(":mobile-pagecontainer").pagecontainer("change", "#dialog");
+    }
+   
+}
 function populateOrderMenu(response) {
-    if(response.user){
+    if (response.user) {
         $("#mUserName").html(response.user.name);
         $("#balance").html(response.user.credit);
+        $("#address").val(response.user.address);
     }
     var lastOrders = response.orders;
     var grandTotal = 0;
@@ -674,55 +702,55 @@ function timeDiffInMins(t1, t2) {
 var GPS = function () {
 
 }
-var Slot=function(){
-   
+var Slot = function () {
 
-   
+
+
 }
-Slot.prototype.getSlots = function(){
+Slot.prototype.getSlots = function () {
     var date = new Date();
     var hour = date.getHours();
     var tommorow = "<br/><span style='font-size:x-small' class='ui-mini'>tomorrow</span>";
     var today = "<br/><span style='font-size:x-small' class='ui-mini'>today</span>";
-    var from7="7:00am-9:00am";
+    var from7 = "7:00am-9:00am";
     var from10 = "10:00am-12:30pm";
     var from5 = "5:00pm-8:00pm";
     var emergency = "Emergency Delivery<br/><span style='font-size:x-small' class='ui-mini'>Within 60 mins or it's free</span>";
-    if(isFood&&hour>10&&hour<=21){
+    if (isFood && hour > 10 && hour <= 21) {
         return ["Immediate"];
-    }else if(isFood&&hour<=10){
+    } else if (isFood && hour <= 10) {
         return ["12:00pm-1:00pm"];
-    }else if(isFood&&hour>21){
-        return ["12:00pm-1:00pm"+tommorow];
+    } else if (isFood && hour > 21) {
+        return ["12:00pm-1:00pm" + tommorow];
     }
-    if(hour>=17&&hour<21){
-        return [from7+tommorow,
-                from10+tommorow,
-                from5+tommorow,
-                emergency];
+    if (hour >= 17 && hour < 21) {
+        return [from7 + tommorow,
+            from10 + tommorow,
+            from5 + tommorow,
+            emergency];
     }
-    if(hour>=21){
-        return ["7:00am-9:00am"+tommorow,
-                "10:00am-12:30pm"+tommorow,
-                "5:00pm-8:00pm"+tommorow];
+    if (hour >= 21) {
+        return ["7:00am-9:00am" + tommorow,
+            "10:00am-12:30pm" + tommorow,
+            "5:00pm-8:00pm" + tommorow];
     }
-    if(hour<=5){
-        return ["7:00am-9:00am"+today,
-                "10:00am-12:30pm"+today,
-                "5:00pm-8:00pm"+today];
+    if (hour <= 5) {
+        return ["7:00am-9:00am" + today,
+            "10:00am-12:30pm" + today,
+            "5:00pm-8:00pm" + today];
     }
-    if(hour<10){
-        return [from10+today,
-                from5+today,
-                from7+tommorow,
-               emergency];
+    if (hour < 10) {
+        return [from10 + today,
+            from5 + today,
+            from7 + tommorow,
+            emergency];
     }
-    
-    if(hour<17){
-        return [from5+today,
-            from7+tommorow,
-            from10+tommorow,
-            from5+tommorow,
+
+    if (hour < 17) {
+        return [from5 + today,
+            from7 + tommorow,
+            from10 + tommorow,
+            from5 + tommorow,
             emergency];
     }
 }
@@ -776,11 +804,13 @@ function saveFeedback(pRating, dRating, message) {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         complete: function (data) {
-           new OrderHistory().rated();
-           
+            new OrderHistory().rated();
+
         }
     });
-    $.mobile.changePage("#");
+
+    
+    $.mobile.back();
 }
 function submitFeedback(src) {
     var delivery = document.querySelector('input[name="dRating"]:checked');
